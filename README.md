@@ -13,5 +13,13 @@ Before running the project, make sure you have Node.js and npm installed on your
 4. Run the project locally: `npm run dev`
 
 
+## Using Facetype.js to convert fonts to Three.js supported formats
+1. Download font you wish to use in Threejs.
+2. Navigate to: https://gero3.github.io/facetype.js/
+3. Select the `Generate a JSON fiel (.json)` option.
+4. Click 'Convert'.
+5. Move converted font file into the `public/fonts` folder.
+
+
 ### Sourced Assets:
 - `assets/images/starry-sky.jpg`: sourced from Pixabay.com, Artist: FelixMittermeier
