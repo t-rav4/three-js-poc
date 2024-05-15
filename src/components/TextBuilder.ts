@@ -13,7 +13,10 @@ export class TextBuilder {
     this.scene = scene;
   }
 
-  createText(text: string) {
+  createText(
+    text: string,
+    position: THREE.Vector3 = new THREE.Vector3(0, 0, 0)
+  ) {
     this.fontLoader.load(
       "/fonts/Montserrat SemiBold_Regular.json",
       (fnt) => {
@@ -36,6 +39,7 @@ export class TextBuilder {
 
         const material = new THREE.MeshNormalMaterial();
         const textMesh = new THREE.Mesh(geometry, material);
+        textMesh.position.copy(position);
         this.scene.add(textMesh);
       },
       undefined,
