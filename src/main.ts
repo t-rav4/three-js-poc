@@ -4,28 +4,29 @@ import * as CANNON from "cannon-es";
 import CannonDebugger from "cannon-es-debugger";
 
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
-// import { OrbitControls } from "three/examples/jsm/Addons.js";
-import { Ball } from "./ball";
+import { OrbitControls } from "three/examples/jsm/Addons.js";
 import { TextBuilder } from "./components/TextBuilder";
 import { ShapeBuilder } from "./components/ShapeBuilder";
-import { ModelInstance } from "./ModelInstance";
+import { ModelService } from "./ModelService";
+
+import { TransformControls } from "three/addons/controls/TransformControls.js";
+import { GameCamera } from "./camera";
+import { Ball } from "./ball";
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
-const camera = new THREE.PerspectiveCamera(
-  90,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
+const gameCamera = new GameCamera();
 
 const gui = new GUI();
 
 const canvas = document.querySelector("#bg") as HTMLCanvasElement;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-// const controls = new OrbitControls(camera, renderer.domElement);
-// controls.enableDamping = true; // Adds some drag to the camera movement
+const orbitControls = new OrbitControls(
+  gameCamera.gCamera,
+  renderer.domElement
+);
+orbitControls.enableDamping = true; // Adds some drag to the camera movement
 
 // Instantiate the physics world
 const physicsWorld = new CANNON.World({
@@ -40,22 +41,16 @@ physicsWorld.defaultContactMaterial = new CANNON.ContactMaterial(
     restitution: 0,
   }
 );
-// Enable Cannon Physics Debugger
+// Cannon Physics Debugger
 const cannonDebugger = CannonDebugger(scene, physicsWorld, {
   color: 0xff0000,
 });
 
-// 3d Floating Text
-const textBuilder = new TextBuilder(scene);
-textBuilder.createText("JAEGERSOFT", new THREE.Vector3(0, 5, -20));
-
-// Create the Ball instance
-const ball = new Ball();
-scene.add(ball.getMesh());
-physicsWorld.addBody(ball.getPhysicsBody());
-
 // Set up camera, renderer, lighting
 async function init() {
+  gameCamera.gCamera.position.set(0, 16, 16);
+  gameCamera.gCamera.lookAt(0, 0, 0);
+
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.shadowMap.enabled = true;
@@ -74,7 +69,6 @@ function setupLighting() {
   scene.add(ambLight);
 
   folder.add(ambLight, "intensity", 0, 5, 0.1).name("intensity");
-  folder.open();
 }
 
 function createPlane() {
@@ -115,51 +109,72 @@ function createPlane() {
 }
 
 const shapeBuilder = new ShapeBuilder(scene, physicsWorld);
-// shapeBuilder.createBox(10, 3, 10, new THREE.Vector3(0, 1, 10));
 
-const modelInstance = new ModelInstance(scene, physicsWorld, shapeBuilder);
-await modelInstance.importModel("models/half-pipe.glb");
+// threejs mesh TransformControls
+const transformControl = new TransformControls(
+  gameCamera.gCamera,
+  renderer.domElement
+);
+// Temporarily disable orbit controls while manipulating a transform
+transformControl.addEventListener("dragging-changed", (event: any) => {
+  orbitControls.enabled = !event.value;
+});
 
+scene.add(transformControl);
+
+// Model Service
+const modelInstance = new ModelService(
+  scene,
+  physicsWorld,
+  shapeBuilder,
+  transformControl
+);
+
+const models = [
+  "models/structure-wood.glb",
+  "models/bowl-side.glb",
+  "models/car.glb",
+  "models/half-pipe.glb",
+  "models/obstacle-box.glb",
+  "models/obstacle-end.glb",
+  "models/obstacle-middle.glb",
+  "models/pallet.glb",
+  "models/rail-curve.glb",
+  "models/rail-high.glb",
+  "models/steps.glb",
+  "models/structure-platform.glb",
+];
+
+const folder = gui.addFolder("Models");
+models.forEach((model) => {
+  folder.add({ model: () => createModel(model) }, "model").name(model);
+});
+
+function createModel(pathToModel: string) {
+  modelInstance.addModelToScene(pathToModel, undefined, 10, true);
+}
+
+// 3d Floating Text
+const textBuilder = new TextBuilder(scene);
+textBuilder.createText("JAEGERSOFT", new THREE.Vector3(0, 5, -20));
+
+// Create the Ball instance
+const ball = new Ball();
+scene.add(ball.getMesh());
+physicsWorld.addBody(ball.getPhysicsBody());
+
+// Main Game Loop
 function render() {
   requestAnimationFrame(render);
-  // Uncomment the controls if you want to use OrbitControls
-  // controls.update();
-
+  orbitControls.update();
   ball.update();
-  updateCameraPos(ball.getPhysicsBody());
+  // gameCamera.updateCameraPos(ball.getPhysicsBody());
   shapeBuilder.syncShapes();
 
   physicsWorld.step(1 / 60);
-  // cannonDebugger.update();
+  cannonDebugger.update();
 
-  renderer.render(scene, camera);
-}
-
-const cameraOffset = new THREE.Vector3(0, 16, 16);
-
-function updateCameraPos(player: CANNON.Body) {
-  const targetCameraPosition = new THREE.Vector3();
-  targetCameraPosition.copy(player.position).add(cameraOffset);
-  camera.position.lerp(targetCameraPosition, 0.5);
-
-  // Vector facing outwards from camera
-  const cameraFacingDirection = new THREE.Vector3(0, 0, -1).normalize();
-
-  // Calculate direction vector from camera to target
-  const direction = new THREE.Vector3().subVectors(
-    player.position,
-    camera.position
-  );
-
-  const angleRadians = cameraFacingDirection.angleTo(direction);
-  const axis = new THREE.Vector3()
-    .crossVectors(cameraFacingDirection, direction)
-    .normalize();
-  const quaternion = new THREE.Quaternion().setFromAxisAngle(
-    axis,
-    angleRadians
-  );
-  camera.quaternion.copy(quaternion);
+  renderer.render(scene, gameCamera.gCamera);
 }
 
 await init();

@@ -27,3 +27,4 @@ Before running the project, make sure you have Node.js and npm installed on your
 
 ### Sourced Assets:
 - Poly texture used on sphere: `https://www.freepik.com/free-vector/low-poly-background_2331468.htm#query=low%20poly%20texture&position=3&from_view=keyword&track=ais&uuid=60afdd5c-ce68-4ed3-a7f9-2d414b7aa2b0` Image by kjpargeter on Freepik
+- Mini-skatepark assets by Kenney: `https://www.kenney.nl/assets/mini-skate`

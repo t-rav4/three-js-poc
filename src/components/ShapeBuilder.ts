@@ -56,6 +56,19 @@ export class ShapeBuilder {
     }
 
     this.shapeInstances.forEach(({ mesh, body }: ShapeInstance, _idx) => {
+      // For static physic bodies, sync the physics body to the mesh instead
+      if (body.type === CANNON.Body.STATIC) {
+        body.position.copy(threeVecToCannon(mesh.position));
+        const quat = new CANNON.Quaternion(
+          mesh.quaternion.x,
+          mesh.quaternion.y,
+          mesh.quaternion.z,
+          mesh.quaternion.w
+        );
+        body.quaternion.copy(quat);
+        return;
+      }
+
       mesh.position.copy(body.position);
       mesh.quaternion.copy(body.quaternion);
     });

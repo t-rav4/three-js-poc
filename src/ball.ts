@@ -133,7 +133,7 @@ export class Ball {
 
   jump() {
     if (this.isGrounded()) {
-      this.ballBody.applyImpulse(CANNON.Vec3.UNIT_Y.scale(52));
+      this.ballBody.applyImpulse(CANNON.Vec3.UNIT_Y.scale(16));
     }
   }
 
@@ -149,20 +149,6 @@ export class Ball {
   }
 
   bindKeyInputs() {
-    window.addEventListener("keypress", (event) => {
-      if (event.code == "KeyR") {
-        console.log("Reset");
-
-        this.velocity = new CANNON.Vec3(0, 0, 0);
-        this.ballBody.velocity = new CANNON.Vec3(0, 0, 0);
-
-        const start = new CANNON.Vec3(0, 2.4, 0);
-        this.ballBody.position = start;
-      } else if (event.code == "Space") {
-        this.jump();
-      }
-    });
-
     window.addEventListener("keydown", (event) => {
       switch (event.code) {
         case "KeyW":
