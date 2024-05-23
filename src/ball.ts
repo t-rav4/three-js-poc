@@ -2,16 +2,20 @@ import * as THREE from "three";
 import * as CANNON from "cannon-es";
 
 export class Ball {
+  health = 10;
+  movementEnabled = true;
+
   ballBody!: CANNON.Body;
   ball!: THREE.Mesh;
   radius = 2;
   velocity: CANNON.Vec3 = CANNON.Vec3.ZERO;
-  acceleration = 6;
+  acceleration = 8;
   deceleration = 0.2;
 
+  mousePos: THREE.Vector3 = new THREE.Vector3();
   keys = { W: false, A: false, S: false, D: false };
 
-  maxSpeed = 12;
+  maxSpeed = 18;
 
   constructor() {
     this.init();
@@ -34,6 +38,15 @@ export class Ball {
     // this.ballBody.linearDamping = 0;
     this.ballBody.angularDamping = 0.5;
 
+    // add collistion listener
+    this.ballBody.addEventListener("collide", (event: any) => {
+      console.log(event);
+      if (event.body.collisionFilterGroup == 5) {
+        this.takeDamage(5);
+        // TODO: add some sort of knockback
+      }
+    });
+
     // three.js
     const sphereGeo = new THREE.SphereGeometry(this.radius);
     const textureLoader = new THREE.TextureLoader();
@@ -43,6 +56,10 @@ export class Ball {
     this.ball = new THREE.Mesh(sphereGeo, sphereMat);
 
     this.bindKeyInputs();
+  }
+
+  takeDamage(damage: number) {
+    this.health -= damage;
   }
 
   // Send a raycast from the sphere's centre in a downwards direction
@@ -70,6 +87,9 @@ export class Ball {
   }
 
   updateVelocity() {
+    if (!this.movementEnabled) {
+      return;
+    }
     if (this.keys["W"]) {
       this.velocity.z = Math.max(
         this.velocity.z - this.acceleration,
@@ -116,7 +136,16 @@ export class Ball {
     }
   }
 
+  die() {
+    this.movementEnabled = false;
+    this.velocity = CANNON.Vec3.ZERO;
+  }
+
   update() {
+    if (this.health <= 0) {
+      this.die();
+    }
+
     this.updateVelocity();
     this.decelerateVelocity();
 
@@ -133,9 +162,19 @@ export class Ball {
 
   jump() {
     if (this.isGrounded()) {
-      this.ballBody.applyImpulse(CANNON.Vec3.UNIT_Y.scale(16));
+      this.ballBody.applyImpulse(CANNON.Vec3.UNIT_Y.scale(20));
     }
   }
+
+  // TODO: use something like this when shooting/throwables are added?
+  // drawAimIndicator() {
+  // const mousePosition = new THREE.Vector3();
+  // mousePosition.set(
+  //   (mouseX / window.innerWidth) * 2 - 1,
+  //   -(event.clientY / window.innerHeight) * 2 + 1,
+  //   0.5
+  // );
+  // }
 
   getMesh() {
     return this.ball;
@@ -149,6 +188,11 @@ export class Ball {
   }
 
   bindKeyInputs() {
+    window.addEventListener("keypress", (event) => {
+      if (event.code == "Space") {
+        this.jump();
+      }
+    });
     window.addEventListener("keydown", (event) => {
       switch (event.code) {
         case "KeyW":

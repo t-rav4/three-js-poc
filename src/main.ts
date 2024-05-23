@@ -4,29 +4,21 @@ import * as CANNON from "cannon-es";
 import CannonDebugger from "cannon-es-debugger";
 
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
-import { OrbitControls } from "three/examples/jsm/Addons.js";
-import { TextBuilder } from "./components/TextBuilder";
 import { ShapeBuilder } from "./components/ShapeBuilder";
 import { ModelService } from "./ModelService";
 
 import { TransformControls } from "three/addons/controls/TransformControls.js";
-import { GameCamera } from "./camera";
-import { Ball } from "./ball";
+import { GameCamera } from "./GameCamera";
+import { Game } from "./Game";
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
-
-const gameCamera = new GameCamera();
 
 const gui = new GUI();
 
 const canvas = document.querySelector("#bg") as HTMLCanvasElement;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-const orbitControls = new OrbitControls(
-  gameCamera.gCamera,
-  renderer.domElement
-);
-orbitControls.enableDamping = true; // Adds some drag to the camera movement
+const gameCamera = new GameCamera(renderer);
 
 // Instantiate the physics world
 const physicsWorld = new CANNON.World({
@@ -42,6 +34,7 @@ physicsWorld.defaultContactMaterial = new CANNON.ContactMaterial(
   }
 );
 // Cannon Physics Debugger
+let debuggingEnabled = false;
 const cannonDebugger = CannonDebugger(scene, physicsWorld, {
   color: 0xff0000,
 });
@@ -117,13 +110,14 @@ const transformControl = new TransformControls(
 );
 // Temporarily disable orbit controls while manipulating a transform
 transformControl.addEventListener("dragging-changed", (event: any) => {
-  orbitControls.enabled = !event.value;
+  gameCamera.orbitControls.enabled = !event.value;
 });
 
 scene.add(transformControl);
 
 // Model Service
-const modelInstance = new ModelService(
+const modelService = new ModelService(
+  gameCamera.gCamera,
   scene,
   physicsWorld,
   shapeBuilder,
@@ -151,31 +145,31 @@ models.forEach((model) => {
 });
 
 function createModel(pathToModel: string) {
-  modelInstance.addModelToScene(pathToModel, undefined, 10, true);
+  modelService.addModelToScene(pathToModel, undefined, 10, true);
 }
 
-// 3d Floating Text
-const textBuilder = new TextBuilder(scene);
-textBuilder.createText("JAEGERSOFT", new THREE.Vector3(0, 5, -20));
-
-// Create the Ball instance
-const ball = new Ball();
-scene.add(ball.getMesh());
-physicsWorld.addBody(ball.getPhysicsBody());
+const game = new Game(scene, physicsWorld, gameCamera);
 
 // Main Game Loop
 function render() {
   requestAnimationFrame(render);
-  orbitControls.update();
-  ball.update();
-  // gameCamera.updateCameraPos(ball.getPhysicsBody());
-  shapeBuilder.syncShapes();
+
+  game.update();
 
   physicsWorld.step(1 / 60);
-  cannonDebugger.update();
+  if (debuggingEnabled) {
+    cannonDebugger.update();
+  }
 
   renderer.render(scene, gameCamera.gCamera);
 }
+
+document.addEventListener("keypress", (event) => {
+  // TODO: identified issue - can't disable once enabled
+  if (event.code == "Backquote") {
+    debuggingEnabled = !debuggingEnabled;
+  }
+});
 
 await init();
 

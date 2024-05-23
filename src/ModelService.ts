@@ -7,30 +7,44 @@ import {
   TransformControls,
 } from "three/examples/jsm/Addons.js";
 import { threeVecToCannon } from "./utils/vectorUtils";
+import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
 
 export class ModelService {
   modelLoader: GLTFLoader;
 
+  createdMeshes: THREE.Mesh[] = [];
+  selectedMesh: THREE.Mesh | null = null;
+  gui = new GUI();
+
+  camera: THREE.Camera;
   scene: THREE.Scene;
   world: CANNON.World;
   shapeBuilder: ShapeBuilder;
 
   transformControls: TransformControls;
+  transforming: boolean = false;
 
   constructor(
+    camera: THREE.Camera,
     scene: THREE.Scene,
     world: CANNON.World,
     shapeBuilder: ShapeBuilder,
     transformControls: TransformControls
   ) {
     this.modelLoader = new GLTFLoader();
-
+    this.camera = camera;
     this.scene = scene;
     this.world = world;
     this.shapeBuilder = shapeBuilder;
 
     this.transformControls = transformControls;
+
     this.bindKeyBinds();
+
+    this.gui.domElement.style.position = "absolute";
+    this.gui.domElement.style.top = "10px";
+    this.gui.domElement.style.left = "10px";
+    this.gui.show(false);
   }
 
   createSingleMeshFromMany(meshes: THREE.Mesh[]) {
@@ -87,6 +101,7 @@ export class ModelService {
       singleMesh.position.set(startPos.x, startPos.y, startPos.z);
       singleMesh.scale.multiplyScalar(scaleFactor);
 
+      singleMesh.name = pathToModel;
       this.scene.add(singleMesh);
 
       // Create the physics body for the mesh
@@ -141,16 +156,42 @@ export class ModelService {
 
         this.world.addBody(customMeshBody);
 
-        if (withTransformControls) {
+        if (withTransformControls && !this.selectedMesh) {
+          this.selectModel(singleMesh);
           this.transformControls.attach(singleMesh);
-          this.bindKeyBinds();
         }
 
         this.shapeBuilder.addModelToInstances(singleMesh, customMeshBody);
+
+        this.createdMeshes.push(singleMesh);
       } else {
         throw new Error("Could not find index on geometry object");
       }
     });
+  }
+
+  selectModel(mesh: THREE.Mesh) {
+    if (this.selectedMesh == mesh) {
+      return;
+    }
+    this.selectedMesh = mesh;
+
+    this.setDetailsInGUIPanel(this.selectedMesh);
+    this.gui.show(true);
+  }
+
+  setDetailsInGUIPanel(mesh: THREE.Mesh) {
+    this.gui.title(mesh.name);
+    if (this.selectedMesh) {
+      const position = this.gui.addFolder("Position");
+      position.add(this.selectedMesh.position, "x").name("x:");
+      position.add(this.selectedMesh.position, "y").name("y:");
+      position.add(this.selectedMesh.position, "z").name("z:");
+    }
+  }
+
+  getSelectedModel() {
+    return this.selectedMesh;
   }
 
   bindKeyBinds() {
@@ -166,6 +207,44 @@ export class ModelService {
       // if (event.key == "q") {
       //   this.transformControls.setMode("scale");
       // }
+    });
+
+    this.transformControls.addEventListener("mouseDown", () => {
+      this.transforming = true;
+    });
+    this.transformControls.addEventListener("mouseUp", () => {
+      this.transforming = false;
+    });
+
+    window.addEventListener("mousedown", (event) => {
+      if (this.transforming) {
+        return;
+      }
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      // Calculate mouse position in normalized device coordinates
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      // Update the picking ray with the camera and mouse position
+      raycaster.setFromCamera(mouse, this.camera);
+
+      // Calculate objects intersecting the picking ray
+      const intersects = raycaster.intersectObjects(this.createdMeshes, true);
+
+      if (intersects.length > 0) {
+        // Detach transformcontrols from existing selection.
+        this.transformControls.detach();
+
+        // The first intersected object is the selected one
+        const mesh = intersects[0].object;
+        if (mesh instanceof THREE.Mesh) {
+          this.selectModel(mesh);
+          this.transformControls.attach(mesh);
+        }
+      } else if (!this.transforming) {
+        this.transformControls.detach();
+      }
     });
   }
 }

@@ -2,7 +2,7 @@ import * as THREE from "three";
 import * as CANNON from "cannon-es";
 import { threeVecToCannon } from "../utils/vectorUtils";
 
-type ShapeInstance = {
+export type ShapeInstance = {
   mesh: THREE.Mesh;
   body: CANNON.Body;
 };
@@ -25,8 +25,8 @@ export class ShapeBuilder {
     startPos: THREE.Vector3
   ) {
     const cubeBody = new CANNON.Body({
-      mass: 0,
-      type: CANNON.Body.STATIC,
+      mass: 100,
+      collisionFilterGroup: 5,
       shape: new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2)),
     });
 
@@ -43,14 +43,17 @@ export class ShapeBuilder {
 
     this.scene.add(cubeMesh);
 
-    this.shapeInstances.push({ mesh: cubeMesh, body: cubeBody });
+    const shapeInstance = { mesh: cubeMesh, body: cubeBody };
+    this.shapeInstances.push(shapeInstance);
+
+    return shapeInstance;
   }
 
   addModelToInstances(mesh: THREE.Mesh, body: CANNON.Body) {
     this.shapeInstances.push({ mesh, body });
   }
 
-  syncShapes() {
+  syncPhysics() {
     if (this.shapeInstances.length == 0) {
       return;
     }
