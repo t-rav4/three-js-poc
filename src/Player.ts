@@ -1,8 +1,9 @@
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
 
-export class Ball {
+export class Player {
   health = 10;
+  coins = 0;
   movementEnabled = true;
 
   ballBody!: CANNON.Body;
@@ -25,16 +26,18 @@ export class Ball {
     // cannon (physics) world
     this.ballBody = new CANNON.Body({
       mass: 1,
+      type: CANNON.Body.DYNAMIC,
       shape: new CANNON.Sphere(this.radius),
+      collisionFilterGroup: 1,
     });
     this.ballBody.material = new CANNON.Material({
       friction: 1.0,
       restitution: 0.3,
     });
+
     this.ballBody.position.x -= 20;
     this.ballBody.position.y += 2.4;
     this.ballBody.position.x += 6;
-
     // this.ballBody.linearDamping = 0;
     this.ballBody.angularDamping = 0.5;
 
@@ -44,13 +47,21 @@ export class Ball {
       if (event.body.collisionFilterGroup == 5) {
         this.takeDamage(5);
         // TODO: add some sort of knockback
+        return;
+      }
+      if (event.body.collisionFilterGroup == 2) {
+        const coin = event.body?.pickup;
+        if (coin) {
+          this.coins++;
+          coin.destroy();
+        }
       }
     });
 
     // three.js
     const sphereGeo = new THREE.SphereGeometry(this.radius);
     const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load("/poly_texture.jpg");
+    const texture = textureLoader.load("/assets/poly_texture.jpg");
     const sphereMat = new THREE.MeshBasicMaterial({ map: texture });
 
     this.ball = new THREE.Mesh(sphereGeo, sphereMat);
@@ -58,6 +69,12 @@ export class Ball {
     this.bindKeyInputs();
   }
 
+  getHealth() {
+    return this.health;
+  }
+  getCoins() {
+    return this.coins;
+  }
   takeDamage(damage: number) {
     this.health -= damage;
   }

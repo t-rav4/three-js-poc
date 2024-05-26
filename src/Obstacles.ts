@@ -1,10 +1,10 @@
 import { Vector3 } from "three";
 import { ShapeBuilder, ShapeInstance } from "./components/ShapeBuilder";
 import * as CANNON from "cannon-es";
+import { getRandomVector3 } from "./utils/vectorUtils";
 
 export class Obstacles {
   shapeBuilder: ShapeBuilder;
-
   movementEnabled = false;
 
   obstacles: ShapeInstance[] = [];
@@ -60,17 +60,10 @@ export class Obstacles {
     const minDistanceFromOrigin = 50;
 
     for (let i = 0; i < numOfSpawns; i++) {
-      let x = generateRandomCoordinate(minDistanceFromOrigin, 100);
-      let z = generateRandomCoordinate(minDistanceFromOrigin, 100);
-      spawns.push(new Vector3(x, 3, z));
+      spawns.push(getRandomVector3(minDistanceFromOrigin));
     }
     return spawns;
   }
-}
-
-function generateRandomCoordinate(min: number, max: number): number {
-  const coordinate = Math.random() * (max - min) + min;
-  return Math.random() < 0.5 ? -coordinate : coordinate;
 }
 
 // alternative force movement:

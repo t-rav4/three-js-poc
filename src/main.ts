@@ -148,7 +148,7 @@ function createModel(pathToModel: string) {
   modelService.addModelToScene(pathToModel, undefined, 10, true);
 }
 
-const game = new Game(scene, physicsWorld, gameCamera);
+const game = new Game(scene, physicsWorld, gameCamera, shapeBuilder);
 
 // Main Game Loop
 function render() {
@@ -157,6 +157,11 @@ function render() {
   game.update();
 
   physicsWorld.step(1 / 60);
+
+  // Removing a physics body as a result of a collision - needs to be done
+  // before or after the physics world step has completed
+  shapeBuilder.removeQueuedInstances();
+
   if (debuggingEnabled) {
     cannonDebugger.update();
   }
@@ -171,6 +176,7 @@ document.addEventListener("keypress", (event) => {
   }
 });
 
-await init();
-
-render();
+(async () => {
+  await init();
+  render();
+})();

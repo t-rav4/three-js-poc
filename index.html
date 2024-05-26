@@ -5,8 +5,30 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Threejs Demo</title>
+    <style>
+      #player-ui {
+        background-color: rgba(0, 0, 0, 0.2);
+        border: 1px solid white;
+        position: absolute;
+        top: 0;
+        left: 0;
+        margin-left: 10px;
+        margin-top: 10px;
+        padding: 10px 80px 10px 10px;
+        width: fit-content;
+        height: fit-content;
+        z-index: 10;
+        color: white;
+        display: flex;
+        flex-direction: column;
+      }
+    </style>
   </head>
   <body>
+    <div id="player-ui">
+      <p>Health: <span id="player-health" /></p>
+      <p>Coins: <span id="coin-count" /></p>
+    </div>
     <canvas id="bg"></canvas>
 
     <script type="module" src="/src/main.ts"></script>

@@ -63,16 +63,22 @@ export class ModelService {
     // Fixes up mesh + texture
     let offset = 0;
     meshes.forEach((_mesh, index) => {
-      singleMesh.geometry.groups.push({
-        start: offset,
-        count: geometries[index].index
-          ? geometries[index].index.count
-          : geometries[index].attributes.position.count,
-        materialIndex: index,
-      });
-      offset += geometries[index].index
-        ? geometries[index].index.count
-        : geometries[index].attributes.position.count;
+      const count = geometries[index].index;
+      if (count) {
+        singleMesh.geometry.groups.push({
+          start: offset,
+          count: count.count,
+          materialIndex: index,
+        });
+        offset += count.count;
+      } else {
+        singleMesh.geometry.groups.push({
+          start: offset,
+          count: geometries[index].attributes.position.count,
+          materialIndex: index,
+        });
+        offset += geometries[index].attributes.position.count;
+      }
     });
 
     singleMesh.material = materials as THREE.Material[]; // Seems to be working doing it this way

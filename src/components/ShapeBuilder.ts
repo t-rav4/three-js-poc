@@ -12,10 +12,32 @@ export class ShapeBuilder {
   world: CANNON.World;
 
   shapeInstances: ShapeInstance[] = [];
+  indexedInstancesToRemove: number[] = [];
 
   constructor(scene: THREE.Scene, world: CANNON.World) {
     this.scene = scene;
     this.world = world;
+  }
+
+  removeQueuedInstances() {
+    this.indexedInstancesToRemove.forEach((index) => {
+      const [removedInstance] = this.shapeInstances.splice(index, 1);
+
+      this.scene.remove(removedInstance.mesh);
+      this.world.removeBody(removedInstance.body);
+      removedInstance.mesh.geometry.dispose();
+      (removedInstance.mesh.material as THREE.Material).dispose();
+    });
+    this.indexedInstancesToRemove = [];
+  }
+
+  removeInstance(instance: ShapeInstance) {
+    const removalIndex = this.shapeInstances.findIndex(
+      (i) => i.mesh.id == instance.mesh.id
+    );
+    if (removalIndex >= 0) {
+      this.indexedInstancesToRemove.push(removalIndex);
+    }
   }
 
   createBox(
@@ -54,11 +76,11 @@ export class ShapeBuilder {
   }
 
   syncPhysics() {
-    if (this.shapeInstances.length == 0) {
-      return;
-    }
-
     this.shapeInstances.forEach(({ mesh, body }: ShapeInstance, _idx) => {
+      if ((body as any).pickup) {
+        body.angularVelocity.set(0, 1.5, 0);
+      }
+
       // For static physic bodies, sync the physics body to the mesh instead
       if (body.type === CANNON.Body.STATIC) {
         body.position.copy(threeVecToCannon(mesh.position));
@@ -75,5 +97,46 @@ export class ShapeBuilder {
       mesh.position.copy(body.position);
       mesh.quaternion.copy(body.quaternion);
     });
+  }
+
+  createCoin() {
+    const radius = 2;
+    const height = 1;
+    const coinBody = new CANNON.Body({
+      mass: 0,
+      collisionFilterGroup: 2,
+      type: CANNON.Body.DYNAMIC,
+      shape: new CANNON.Cylinder(radius, radius, height),
+    });
+
+    coinBody.position.set(0, 6, 0);
+    // coinBody.quaternion.setFromAxisAngle(CANNON.Vec3.UNIT_X, Math.PI / 2);
+    // Set initial rotation around the X-axis to make it upright
+    const uprightQuaternion = new CANNON.Quaternion();
+    uprightQuaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2);
+
+    // Set random rotation around the Y-axis
+    const randomYQuaternion = new CANNON.Quaternion();
+    const randYAngle = Math.random() * 2 * Math.PI;
+    randomYQuaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), randYAngle);
+
+    // Combine the two quaternions
+    coinBody.quaternion.copy(uprightQuaternion.mult(randomYQuaternion));
+
+    const cylinder = new THREE.CylinderGeometry(radius, radius, height);
+    const cylinderMat = new THREE.MeshNormalMaterial();
+    const cylidnerMesh = new THREE.Mesh(cylinder, cylinderMat);
+
+    this.world.addBody(coinBody);
+
+    cylidnerMesh.position.copy(coinBody.position);
+    cylidnerMesh.quaternion.copy(coinBody.quaternion);
+
+    this.scene.add(cylidnerMesh);
+
+    const shapeInstance = { mesh: cylidnerMesh, body: coinBody };
+    this.shapeInstances.push(shapeInstance);
+
+    return shapeInstance;
   }
 }
