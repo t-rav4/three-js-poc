@@ -11,7 +11,6 @@ export class Pickup {
 
   constructor(shapeBuilder: ShapeBuilder) {
     this.shapeBuilder = shapeBuilder;
-
     this.instantiatePickup();
   }
 

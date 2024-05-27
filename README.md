@@ -7,20 +7,21 @@ This project is a proof of concept using Three.js, a popular JavaScript library 
 ## Controls
  WASD - To roll the sphere around
  SPACE - To make the sphere jump
+ V - Toggle between camera modes
 
 ## Installation
 Before running the project, make sure you have Node.js and npm installed on your machine.
 
 1. Clone the repository to your local machine: `git clone <repository-url>`
 2. Navigate to the project directory: `cd three-js-poc`
-3. Install dependencies: `npm install`
-4. Run the project locally: `npm run dev`
+3. Install dependencies: `pnpm install`
+4. Run the project locally: `pnpm run dev`
 
 
 ## Using Facetype.js to convert fonts to Three.js supported formats
 1. Download font you wish to use in Threejs.
 2. Navigate to: https://gero3.github.io/facetype.js/
-3. Select the `Generate a JSON fiel (.json)` option.
+3. Select the `Generate a JSON file (.json)` option.
 4. Click 'Convert'.
 5. Move converted font file into the `public/fonts` folder.
 

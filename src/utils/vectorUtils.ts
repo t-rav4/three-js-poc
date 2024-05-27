@@ -10,9 +10,9 @@ export function cannonVecToThree(vec: CANNON.Vec3) {
 }
 
 export function getRandomVector3(min = 0) {
-  const x = generateRandomCoordinate(min, 200);
+  const x = generateRandomCoordinate(min, 100);
   const y = 3;
-  const z = generateRandomCoordinate(min, 200);
+  const z = generateRandomCoordinate(min, 100);
 
   return new THREE.Vector3(x, y, z);
 }

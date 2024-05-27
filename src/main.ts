@@ -154,19 +154,21 @@ const game = new Game(scene, physicsWorld, gameCamera, shapeBuilder);
 function render() {
   requestAnimationFrame(render);
 
-  game.update();
+  if (!game.isPaused) {
+    game.update();
 
-  physicsWorld.step(1 / 60);
+    physicsWorld.step(1 / 60);
 
-  // Removing a physics body as a result of a collision - needs to be done
-  // before or after the physics world step has completed
-  shapeBuilder.removeQueuedInstances();
+    // Removing a physics body as a result of a collision - needs to be done
+    // before or after the physics world step has completed
+    // shapeBuilder.removeQueuedInstances();
 
-  if (debuggingEnabled) {
-    cannonDebugger.update();
+    if (debuggingEnabled) {
+      cannonDebugger.update();
+    }
+    shapeBuilder.removeQueuedInstances();
+    renderer.render(scene, gameCamera.gCamera);
   }
-
-  renderer.render(scene, gameCamera.gCamera);
 }
 
 document.addEventListener("keypress", (event) => {

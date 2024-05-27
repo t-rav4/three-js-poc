@@ -3,11 +3,11 @@ import { ShapeBuilder, ShapeInstance } from "./components/ShapeBuilder";
 import * as CANNON from "cannon-es";
 import { getRandomVector3 } from "./utils/vectorUtils";
 
-export class Obstacles {
+export class EnemyManager {
   shapeBuilder: ShapeBuilder;
   movementEnabled = false;
 
-  obstacles: ShapeInstance[] = [];
+  enemies: ShapeInstance[] = [];
 
   constructor(shapeBuilder: ShapeBuilder) {
     this.shapeBuilder = shapeBuilder;
@@ -17,12 +17,12 @@ export class Obstacles {
 
   init() {}
 
-  moveObstacles(targetPos: CANNON.Vec3) {
+  moveEnemies(targetPos: CANNON.Vec3) {
     if (!this.movementEnabled) {
       return;
     }
 
-    this.obstacles.forEach((obs) => {
+    this.enemies.forEach((obs) => {
       const direction = new CANNON.Vec3();
       targetPos.vsub(obs.body.position, direction);
       direction.normalize();
@@ -51,7 +51,7 @@ export class Obstacles {
 
     spawnPositions.forEach((pos) => {
       const box = this.shapeBuilder.createBox(6, 6, 6, pos);
-      this.obstacles.push(box);
+      this.enemies.push(box);
     });
   }
 
@@ -63,6 +63,17 @@ export class Obstacles {
       spawns.push(getRandomVector3(minDistanceFromOrigin));
     }
     return spawns;
+  }
+
+  destroyAll() {
+    this.movementEnabled = false;
+    this.enemies.forEach((enemy) => {
+      this.shapeBuilder.removeInstance({ mesh: enemy.mesh, body: enemy.body });
+    });
+  }
+
+  stopMovement() {
+    this.movementEnabled = false;
   }
 }
 

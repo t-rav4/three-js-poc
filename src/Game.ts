@@ -1,24 +1,29 @@
 import { TextBuilder } from "./components/TextBuilder";
-import { Obstacles } from "./Obstacles";
+import { EnemyManager } from "./EnemyManager";
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
 import { ShapeBuilder } from "./components/ShapeBuilder";
 import { Player } from "./Player";
 import { GameCamera } from "./GameCamera";
-import { Pickup } from "./Pickup";
-import { getRandomVector3 } from "./utils/vectorUtils";
+import { RoundManager } from "./RoundManager";
+import { UIManager } from "./UIManager";
+import { PickupManager } from "./PickupManager";
 
 export class Game {
-  roundNumber!: number;
+  isPaused = false;
 
   textBuilder: TextBuilder;
   shapeBuilder: ShapeBuilder;
-  obstacles: Obstacles;
+  enemyManager: EnemyManager;
+  pickupManager: PickupManager;
   gameCamera: GameCamera;
+  roundManager: RoundManager;
 
   scene: THREE.Scene;
   world: CANNON.World;
   player: Player;
+
+  uiManager: UIManager;
 
   constructor(
     scene: THREE.Scene,
@@ -28,12 +33,23 @@ export class Game {
   ) {
     this.textBuilder = new TextBuilder(scene);
     this.shapeBuilder = shapeBuilder;
-    this.obstacles = new Obstacles(this.shapeBuilder);
+    this.enemyManager = new EnemyManager(this.shapeBuilder);
+    this.pickupManager = new PickupManager(this.shapeBuilder);
     this.gameCamera = gameCamera;
+
+    this.uiManager = new UIManager();
 
     this.player = new Player();
     scene.add(this.player.getMesh());
     world.addBody(this.player.getPhysicsBody());
+
+    this.roundManager = new RoundManager(
+      this.uiManager,
+      this.player,
+      this.enemyManager,
+      this.pickupManager,
+      this.textBuilder
+    );
 
     this.scene = scene;
     this.world = world;
@@ -42,60 +58,56 @@ export class Game {
   }
 
   init() {
-    this.roundNumber = 1;
-
-    this.textBuilder.createText(
-      `ROUND ${this.roundNumber}`,
-      new THREE.Vector3(0, 5, -20)
-    );
-
-    this.obstacles.spawnEnemies(this.roundNumber);
-
-    this.spawnPickups();
+    this.roundManager.startRound();
   }
 
   update() {
-    // Round completion etc..
-    this.updateUI();
+    this.updateHUD();
+
+    this.roundManager.update();
 
     this.player.update();
+    this.enemyManager.moveEnemies(this.player.getPhysicsBody().position);
+
     this.gameCamera.updateCameraPos(this.player.getPhysicsBody());
 
-    this.obstacles.moveObstacles(this.player.getPhysicsBody().position);
     this.shapeBuilder.syncPhysics();
-  }
-
-  // TODO: spawn powerups around map - conditions depend on round number?
-  // spawnPowerup() {}
-
-  spawnPickups() {
-    for (let i = 0; i < this.roundNumber + 3; i++) {
-      const pickup = new Pickup(this.shapeBuilder);
-      pickup.setPosition(getRandomVector3(50));
-    }
   }
 
   bindInputs() {
     document.addEventListener("keypress", (event) => {
+      // if (event.code == "KeyP") {
+      //   this.pauseGame();
+      // }
+
       if (event.code == "KeyV") {
         this.gameCamera.toggleCameraMode();
       }
 
       if (event.code == "Digit1") {
-        this.obstacles.toggle();
+        this.enemyManager.toggle();
       }
     });
   }
 
-  updateUI() {
-    const element = document.getElementById("player-health");
-    const coinUI = document.getElementById("coin-count");
-
-    if (element) {
-      element.innerText = this.player.getHealth().toString();
-    }
-    if (coinUI) {
-      coinUI.innerText = this.player.getCoins().toString();
-    }
+  updateHUD() {
+    console.log();
+    this.uiManager.updatePlayerHUD(
+      this.player.health,
+      this.player.coins,
+      this.roundManager.gameRound.coins
+    );
   }
+
+  // pauseGame() {
+  //   // TODO: prevent pausing whilst other round related UI is being displayed!
+  //   if (!this.roundManager.roundIsOngoing) {
+  //     return;
+  //   }
+
+  //   this.isPaused = !this.isPaused;
+  //   if (this.isPaused) {
+  //     this.uiManager.showPauseMenu();
+  //   }
+  // }
 }

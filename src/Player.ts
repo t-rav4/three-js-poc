@@ -4,7 +4,7 @@ import * as CANNON from "cannon-es";
 export class Player {
   health = 10;
   coins = 0;
-  movementEnabled = true;
+  movementEnabled = false;
 
   ballBody!: CANNON.Body;
   ball!: THREE.Mesh;
@@ -36,7 +36,7 @@ export class Player {
     });
 
     this.ballBody.position.x -= 20;
-    this.ballBody.position.y += 2.4;
+    this.ballBody.position.y += 2.2; // TODO: issue - mesh and physbody are not in sync when instantiated
     this.ballBody.position.x += 6;
     // this.ballBody.linearDamping = 0;
     this.ballBody.angularDamping = 0.5;
@@ -65,18 +65,40 @@ export class Player {
     const sphereMat = new THREE.MeshBasicMaterial({ map: texture });
 
     this.ball = new THREE.Mesh(sphereGeo, sphereMat);
-
+    this.ball.position.copy(this.ballBody.position);
     this.bindKeyInputs();
   }
 
   getHealth() {
     return this.health;
   }
-  getCoins() {
-    return this.coins;
-  }
+
   takeDamage(damage: number) {
     this.health -= damage;
+  }
+
+  enableMovement() {
+    this.movementEnabled = true;
+    this.ballBody.wakeUp();
+  }
+
+  stopMovement() {
+    this.movementEnabled = false;
+    this.keys = { W: false, A: false, S: false, D: false };
+    this.velocity = CANNON.Vec3.ZERO;
+    // TODO: upon re-enabling movement, the sphere will roll automatically as the velocity hasn't full been reset to 0
+    this.ballBody.sleep();
+  }
+
+  resetPlayer() {
+    this.health = 10;
+    this.coins = 0;
+    this.ballBody.position.x = -20;
+    this.ballBody.position.y = 2.2;
+    this.ballBody.position.z = 6;
+
+    this.ball.position.copy(this.ballBody.position);
+    this.ball.quaternion.copy(this.ballBody.quaternion);
   }
 
   // Send a raycast from the sphere's centre in a downwards direction
@@ -86,7 +108,6 @@ export class Player {
     if (!this.ballBody.world) {
       return false;
     }
-
     const target = this.ballBody.position.clone();
     target.y = target.y - this.radius - 0.1;
     let grounded = false;
@@ -139,6 +160,10 @@ export class Player {
   }
 
   decelerateVelocity() {
+    if (!this.movementEnabled) {
+      return;
+    }
+
     if (!this.keys["W"] && this.velocity.z < 0) {
       this.velocity.z = Math.min(this.velocity.z + this.deceleration, 0);
     }
@@ -153,16 +178,7 @@ export class Player {
     }
   }
 
-  die() {
-    this.movementEnabled = false;
-    this.velocity = CANNON.Vec3.ZERO;
-  }
-
   update() {
-    if (this.health <= 0) {
-      this.die();
-    }
-
     this.updateVelocity();
     this.decelerateVelocity();
 
@@ -178,7 +194,7 @@ export class Player {
   }
 
   jump() {
-    if (this.isGrounded()) {
+    if (this.movementEnabled && this.isGrounded()) {
       this.ballBody.applyImpulse(CANNON.Vec3.UNIT_Y.scale(20));
     }
   }
