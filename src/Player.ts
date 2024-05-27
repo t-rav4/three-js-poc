@@ -43,7 +43,6 @@ export class Player {
 
     // add collistion listener
     this.ballBody.addEventListener("collide", (event: any) => {
-      console.log(event);
       if (event.body.collisionFilterGroup == 5) {
         this.takeDamage(5);
         // TODO: add some sort of knockback

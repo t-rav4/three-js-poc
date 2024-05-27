@@ -1,4 +1,6 @@
 export class UIManager {
+  startMenuUI: HTMLElement;
+  playerUI: HTMLElement;
   popupUI: HTMLElement;
 
   roundLossUI: HTMLElement | null;
@@ -13,6 +15,8 @@ export class UIManager {
   onNext: (() => void) | undefined; // a means of assigning a callback for ui button onclicks
 
   constructor() {
+    this.startMenuUI = document.querySelector("#start-menu") as HTMLElement;
+    this.playerUI = document.querySelector("#player-ui") as HTMLElement;
     this.popupUI = document.getElementsByClassName(
       "popup-ui"
     )[0] as HTMLElement;
@@ -32,18 +36,11 @@ export class UIManager {
 
     if (this.roundWinUI) {
       this.roundWinUI.style.display = "block";
-      const nextbutton = document.getElementsByClassName(
-        "button"
-      )[0] as HTMLElement;
-      if (nextbutton) {
-        console.log("next button exists");
-      } else {
-        console.log("next button does not exists");
-      }
-      if (this.onNext != undefined) {
-        console.log("not undefined - ");
-        nextbutton.onclick = () => this.onNext?.();
-      }
+
+      const nextButton = this.roundWinUI.querySelector(
+        ".button"
+      ) as HTMLElement;
+      nextButton.onclick = () => this.onNext?.();
     }
   }
 
@@ -52,10 +49,10 @@ export class UIManager {
 
     if (this.roundLossUI) {
       this.roundLossUI.style.display = "flex";
-      const nextbutton = document.getElementsByClassName(
-        "button"
-      )[0] as HTMLElement;
-      nextbutton.onclick = () => this.onNext!();
+      const nextButton = this.roundLossUI.querySelector(
+        ".button"
+      ) as HTMLElement;
+      nextButton.onclick = () => this.onNext?.();
     }
   }
 
@@ -75,7 +72,6 @@ export class UIManager {
 
   hidePopupScreens() {
     this.popupUI!.style.display = "none";
-
     this.roundLossUI!.style.display = "none";
     this.roundWinUI!.style.display = "none";
     this.winScreenUI!.style.display = "none";
@@ -91,5 +87,12 @@ export class UIManager {
       this.playerCoinCount.innerText = playerCoinCount.toString();
       this.roundCoinCount.innerText = roundCoins.toString();
     }
+  }
+
+  showGameUI() {
+    // Hide start menu
+    this.startMenuUI.style.display = "none";
+    // Show player HUD
+    this.playerUI.style.display = "flex";
   }
 }

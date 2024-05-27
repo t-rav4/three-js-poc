@@ -148,27 +148,26 @@ function createModel(pathToModel: string) {
   modelService.addModelToScene(pathToModel, undefined, 10, true);
 }
 
-const game = new Game(scene, physicsWorld, gameCamera, shapeBuilder);
+// Hide the GUI until game has started
+gui.show(false);
+const game = new Game(scene, physicsWorld, gameCamera, shapeBuilder, gui);
 
 // Main Game Loop
 function render() {
   requestAnimationFrame(render);
 
-  if (!game.isPaused) {
-    game.update();
+  game.update();
 
-    physicsWorld.step(1 / 60);
+  physicsWorld.step(1 / 60);
+  // shapeBuilder.removeQueuedInstances();
 
-    // Removing a physics body as a result of a collision - needs to be done
-    // before or after the physics world step has completed
-    // shapeBuilder.removeQueuedInstances();
-
-    if (debuggingEnabled) {
-      cannonDebugger.update();
-    }
-    shapeBuilder.removeQueuedInstances();
-    renderer.render(scene, gameCamera.gCamera);
+  if (debuggingEnabled) {
+    cannonDebugger.update();
   }
+  // Removing a physics body as a result of a collision - needs to be done
+  // before or after the physics world step has completed
+  shapeBuilder.removeQueuedInstances();
+  renderer.render(scene, gameCamera.gCamera);
 }
 
 document.addEventListener("keypress", (event) => {
@@ -178,7 +177,13 @@ document.addEventListener("keypress", (event) => {
   }
 });
 
-(async () => {
+const startButton = document.getElementById("start-button");
+if (startButton) {
+  startButton.onclick = () => startGame();
+}
+
+async function startGame() {
+  game.startGame();
   await init();
   render();
-})();
+}

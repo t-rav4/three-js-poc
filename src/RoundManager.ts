@@ -29,7 +29,8 @@ const gameRounds: GameRound[] = [
     coins: 5,
   },
 ];
-
+// TODO: bugs with number of coints spawned/enemies after restarting round
+// TOOD: bug with player velocity not being reset after proceeding to next round
 export class RoundManager {
   gameRound!: GameRound;
   currentRoundNumber = 0;
@@ -91,7 +92,6 @@ export class RoundManager {
   }
 
   proceedToNextRound() {
-    console.log("doing this");
     // Hide any opened UIs
     this.uiManager.hidePopupScreens();
 
@@ -110,7 +110,6 @@ export class RoundManager {
     }
 
     if (this.player.coins == this.gameRound.coins) {
-      console.log("excuse me");
       this.winRound();
     }
 
@@ -135,7 +134,6 @@ export class RoundManager {
     if (this.currentRoundNumber == gameRounds.length) {
       this.uiManager.showWinScreenUI();
     } else {
-      console.log("okay showround winui");
       this.uiManager.onNext = () => this.proceedToNextRound();
       this.uiManager.showRoundWinUI();
     }

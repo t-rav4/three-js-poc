@@ -8,6 +8,7 @@ import { GameCamera } from "./GameCamera";
 import { RoundManager } from "./RoundManager";
 import { UIManager } from "./UIManager";
 import { PickupManager } from "./PickupManager";
+import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
 
 export class Game {
   isPaused = false;
@@ -18,6 +19,7 @@ export class Game {
   pickupManager: PickupManager;
   gameCamera: GameCamera;
   roundManager: RoundManager;
+  gui: GUI;
 
   scene: THREE.Scene;
   world: CANNON.World;
@@ -29,13 +31,15 @@ export class Game {
     scene: THREE.Scene,
     world: CANNON.World,
     gameCamera: GameCamera,
-    shapeBuilder: ShapeBuilder
+    shapeBuilder: ShapeBuilder,
+    gui: GUI
   ) {
     this.textBuilder = new TextBuilder(scene);
     this.shapeBuilder = shapeBuilder;
     this.enemyManager = new EnemyManager(this.shapeBuilder);
     this.pickupManager = new PickupManager(this.shapeBuilder);
     this.gameCamera = gameCamera;
+    this.gui = gui;
 
     this.uiManager = new UIManager();
 
@@ -54,10 +58,12 @@ export class Game {
     this.scene = scene;
     this.world = world;
     this.bindInputs();
-    this.init();
   }
 
-  init() {
+  startGame() {
+    this.uiManager.showGameUI();
+    // Additionally show folder ~ not realy needed in game rn but we will for testing sake
+    this.gui.show();
     this.roundManager.startRound();
   }
 
