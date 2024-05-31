@@ -1,13 +1,15 @@
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { ShapeBuilder } from "./components/ShapeBuilder";
+
 import {
   BufferGeometryUtils,
   TransformControls,
 } from "three/examples/jsm/Addons.js";
-import { threeVecToCannon } from "./utils/vectorUtils";
+
 import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
+import { ShapeBuilder } from "./ShapeBuilder";
+import { threeVecToCannon } from "../../utils/vectorUtils";
 
 export class ModelService {
   modelLoader: GLTFLoader;

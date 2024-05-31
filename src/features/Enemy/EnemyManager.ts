@@ -1,7 +1,7 @@
 import { Vector3 } from "three";
-import { ShapeBuilder, ShapeInstance } from "./components/ShapeBuilder";
 import * as CANNON from "cannon-es";
-import { getRandomVector3 } from "./utils/vectorUtils";
+import { getRandomVector3 } from "../../utils/vectorUtils";
+import { ShapeBuilder, ShapeInstance } from "../Model/ShapeBuilder";
 
 export class EnemyManager {
   shapeBuilder: ShapeBuilder;

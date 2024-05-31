@@ -1,10 +1,10 @@
 import * as THREE from "three";
-import { ShapeInstance } from "./components/ShapeBuilder";
-import { TextBuilder } from "./components/TextBuilder";
-import { EnemyManager } from "./EnemyManager";
-import { PickupManager } from "./PickupManager";
-import { Player } from "./Player";
-import { UIManager } from "./UIManager";
+import { TextBuilder } from "../Text/TextBuilder";
+import { EnemyManager } from "../Enemy/EnemyManager";
+import { PickupManager } from "../Pickup/PickupManager";
+import { Player } from "../Player/Player";
+import { UIManager } from "../UI/UIManager";
+import { ShapeInstance } from "../Model/ShapeBuilder";
 
 type GameRound = {
   enemies: number;
@@ -29,7 +29,7 @@ const gameRounds: GameRound[] = [
     coins: 5,
   },
 ];
-// TODO: bugs with number of coints spawned/enemies after restarting round
+// TODO: bugs with number of coins spawned/enemies after restarting round
 // TOOD: bug with player velocity not being reset after proceeding to next round
 export class RoundManager {
   gameRound!: GameRound;
@@ -58,6 +58,8 @@ export class RoundManager {
     this.enemyManager = enemyManager;
     this.pickupManager = pickupManager;
     this.textBuilder = textBuilder;
+
+    this.gameRound = gameRounds[this.currentRoundNumber];
   }
 
   startRound() {

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
-import { ShapeBuilder } from "./components/ShapeBuilder";
-import { threeVecToCannon } from "./utils/vectorUtils";
+import { threeVecToCannon } from "../../utils/vectorUtils";
+import { ShapeBuilder } from "../Model/ShapeBuilder";
 
 export class Pickup {
   mesh!: THREE.Mesh;

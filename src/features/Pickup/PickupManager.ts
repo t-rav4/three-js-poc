@@ -1,6 +1,6 @@
-import { ShapeBuilder } from "./components/ShapeBuilder";
 import { Pickup } from "./Pickup";
-import { getRandomVector3 } from "./utils/vectorUtils";
+import { getRandomVector3 } from "../../utils/vectorUtils";
+import { ShapeBuilder } from "../Model/ShapeBuilder";
 
 export class PickupManager {
   shapeBuilder: ShapeBuilder;

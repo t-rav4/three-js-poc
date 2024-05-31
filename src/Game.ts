@@ -1,13 +1,13 @@
-import { TextBuilder } from "./components/TextBuilder";
-import { EnemyManager } from "./EnemyManager";
+import { TextBuilder } from "./features/Text/TextBuilder";
+import { EnemyManager } from "./features/Enemy/EnemyManager";
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
-import { ShapeBuilder } from "./components/ShapeBuilder";
-import { Player } from "./Player";
-import { GameCamera } from "./GameCamera";
-import { RoundManager } from "./RoundManager";
-import { UIManager } from "./UIManager";
-import { PickupManager } from "./PickupManager";
+import { ShapeBuilder } from "./features/Model/ShapeBuilder";
+import { Player } from "./features/Player/Player";
+import { GameCamera } from "./features/Camera/GameCamera";
+import { RoundManager } from "./features/Round/RoundManager";
+import { UIManager } from "./features/UI/UIManager";
+import { PickupManager } from "./features/Pickup/PickupManager";
 import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
 
 export class Game {
@@ -97,7 +97,6 @@ export class Game {
   }
 
   updateHUD() {
-    console.log();
     this.uiManager.updatePlayerHUD(
       this.player.health,
       this.player.coins,

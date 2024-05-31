@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
-import { threeVecToCannon } from "../utils/vectorUtils";
+import { threeVecToCannon } from "../../utils/vectorUtils";
 
 export type ShapeInstance = {
   mesh: THREE.Mesh;
