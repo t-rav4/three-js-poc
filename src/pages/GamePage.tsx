@@ -1,7 +1,7 @@
 // from game.ts
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
-import CannonDebugger from "cannon-es-debugger";
+// import CannonDebugger from "cannon-es-debugger";
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 import { TransformControls } from "three/addons/controls/TransformControls.js";
 import { GameCamera } from "../features/Camera/GameCamera";
@@ -61,9 +61,9 @@ export default function GamePage() {
       { friction: 1.0, restitution: 0 }
     );
 
-    const cannonDebugger = CannonDebugger(scene, physicsWorld, {
-      color: 0xff0000,
-    });
+    // const cannonDebugger = CannonDebugger(scene, physicsWorld, {
+    //   color: 0xff0000,
+    // });
 
     gameCamera.gCamera.position.set(0, 16, 16);
     gameCamera.gCamera.lookAt(0, 0, 0);
@@ -192,12 +192,12 @@ export default function GamePage() {
     mesh.position.copy(groundBody.position);
   }
 
-  document.addEventListener("keypress", (event) => {
-    // TODO: identified issue - can't disable once enabled
-    // if (event.code == "Backquote") {
-    //   debuggingEnabled = !debuggingEnabled;
-    // }
-  });
+  // document.addEventListener("keypress", (_event) => {
+  // TODO: identified issue - can't disable once enabled
+  // if (event.code == "Backquote") {
+  //   debuggingEnabled = !debuggingEnabled;
+  // }
+  // });
 
   function startGame() {
     if (canvasRef.current && gameRef.current) {
