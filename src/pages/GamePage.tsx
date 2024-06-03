@@ -26,6 +26,7 @@ const models = [
   "models/rail-high.glb",
   "models/steps.glb",
   "models/structure-platform.glb",
+  "models/squirrel.glb",
 ];
 
 export default function GamePage() {
